@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec *)",
+      "Bash(npx tsx *)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s http://localhost:3001)",
+      "Bash(ln -s /home/jesga/projects/hype/.env /home/jesga/projects/hype/apps/web/.env)",
+      "Bash(curl -s http://localhost:3001/games)",
+      "Bash(python3 -c \"import sys,json; games=json.load\\(sys.stdin\\); print\\(f'{len\\(games\\)} games: {[g[\\\\\"title\\\\\"] for g in games]}'\\)\")",
+      "Bash(npm install *)"
+    ]
+  }
+}

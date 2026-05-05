@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ln -s /home/jesga/projects/hype/.env /home/jesga/projects/hype/packages/database/.env)",
+      "Bash(npm run *)",
+      "Bash(npx prisma *)"
+    ]
+  }
+}

@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TeamMemberRole {
+  OWNER
+  DEVELOPER
+  ARTIST
+}
+
+enum GameStatus {
+  PENDING
+  PUBLISHED
+  REJECTED
+}
+
+enum Platform {
+  STEAM
+  GOOGLE_PLAY
+  APP_STORE
+  NINTENDO_ESHOP
+}
+
+enum SocialNetwork {
+  INSTAGRAM
+  FACEBOOK
+  X
+}
+
+// ── Models ─────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  avatarUrl String?  @map("avatar_url")
+  role      Role     @default(USER)
+  googleId  String?  @unique @map("google_id")
+  password  String?  @map("password")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  teamMembers TeamMember[]
+  votes       Vote[]
+  comments    Comment[]
+
+  @@map("users")
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  avatarUrl String?  @map("avatar_url")
+  bio       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members TeamMember[]
+  games   Game[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id     String         @id @default(uuid())
+  teamId String         @map("team_id")
+  userId String         @map("user_id")
+  role   TeamMemberRole @default(DEVELOPER)
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model Game {
+  id          String     @id @default(uuid())
+  teamId      String     @map("team_id")
+  title       String
+  slug        String     @unique
+  description String
+  coverUrl    String?    @map("cover_url")
+  bannerUrl   String?    @map("banner_url")
+  status      GameStatus @default(PENDING)
+  launchDate  DateTime?  @map("launch_date")
+  launched    Boolean    @default(false)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  team        Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  platforms   GamePlatform[]
+  socials     GameSocial[]
+  categories  GameCategory[]
+  screenshots GameScreenshot[]
+  votes       Vote[]
+  comments    Comment[]
+
+  @@map("games")
+}
+
+model GamePlatform {
+  id       String   @id @default(uuid())
+  gameId   String   @map("game_id")
+  platform Platform
+  url      String
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, platform])
+  @@map("game_platforms")
+}
+
+model GameSocial {
+  id      String        @id @default(uuid())
+  gameId  String        @map("game_id")
+  network SocialNetwork
+  url     String
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, network])
+  @@map("game_socials")
+}
+
+model Category {
+  id    String @id @default(uuid())
+  name  String @unique
+  slug  String @unique
+
+  games GameCategory[]
+
+  @@map("categories")
+}
+
+model GameCategory {
+  gameId     String @map("game_id")
+  categoryId String @map("category_id")
+
+  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([gameId, categoryId])
+  @@map("game_categories")
+}
+
+model GameScreenshot {
+  id        String @id @default(uuid())
+  gameId    String @map("game_id")
+  url       String
+  sortOrder Int    @default(0) @map("sort_order")
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("game_screenshots")
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  gameId    String   @map("game_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+  @@map("votes")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  gameId    String   @map("game_id")
+  parentId  String?  @map("parent_id")
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game     Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("replies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("replies")
+
+  @@map("comments")
+}
