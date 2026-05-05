@@ -22,7 +22,7 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-50">
+    <header suppressHydrationWarning className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-4">
         {/* Logo */}
         <Link href="/">
